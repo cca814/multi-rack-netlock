@@ -1,0 +1,37 @@
+name: Compile P4
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**.p4"
+      - ".github/workflows/compile-p4.yaml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  compile-p4:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Compile leaf P4 using Docker run
+        run: |
+          mkdir -p build
+          docker run --rm \
+            -v ${{ github.workspace }}:/workspace \
+            -w /workspace \
+            opennetworking/p4c:latest \
+            sh -c "p4c-bm2-ss --std p4-16 --p4runtime-files \
+              build/netlock.p4info.txt \
+              -o build/netlock.json p4/main.p4"
+
+      - name: Upload compiled artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: p4-build-output
+          path: build/
