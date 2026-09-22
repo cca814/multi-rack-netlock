@@ -1,4 +1,7 @@
 .venv/
+.venv-controller/
+build/
+controller/config.json
 __pycache__/
 *.py[cod]
 logs/

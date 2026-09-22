@@ -9,17 +9,10 @@ control NetLockIngress(inout headers_t headers,
     NetLockEngine() lock_engine;
     bit<1> use_lock_engine;
     bit<1> config_ready;
+    bit<1> route_ready;
 
-    action set_node_config(MAC_ADDR_T switch_mac_addr,
-                           MAC_ADDR_T server_mac_addr,
-                           IPV4_ADDR_T server_ip_addr,
-                           PORT_T to_server_port,
-                           QP_T server_qp) {
+    action set_node_config(MAC_ADDR_T switch_mac_addr) {
         metadata.node_config.switch_mac_addr = switch_mac_addr;
-        metadata.node_config.server_mac_addr = server_mac_addr;
-        metadata.node_config.server_ip_addr = server_ip_addr;
-        metadata.node_config.to_server_port = to_server_port;
-        metadata.node_config.server_qp = server_qp;
         config_ready = 1;
     }
 
@@ -31,27 +24,37 @@ control NetLockIngress(inout headers_t headers,
         default_action = NoAction();
     }
 
-    action forward_to_server() {
+    action route_packet() {
         use_lock_engine = 0;
     }
 
-    action send_to_server() {
+    action drop() {
+        mark_to_drop(standard_metadata);
+    }
+
+    action forward(MAC_ADDR_T next_hop_mac, PORT_T port) {
         headers.ethernet.src_addr = metadata.node_config.switch_mac_addr;
-        headers.ethernet.dst_addr = metadata.node_config.server_mac_addr;
-        headers.ipv4.dst_addr = metadata.node_config.server_ip_addr;
-        headers.ipv4.ttl = headers.ipv4.ttl - 1;
-        headers.bth.dest_qp = metadata.node_config.server_qp;
+        headers.ethernet.dst_addr = next_hop_mac;
         headers.udp.checksum = 0;
-        standard_metadata.egress_spec = metadata.node_config.to_server_port;
+        standard_metadata.egress_spec = port;
+    }
+
+    // All requests and replies use the same destination lookup.
+    table ipv4_forward {
+        key = { headers.ipv4.dst_addr: exact; }
+        actions = {
+            forward;
+            drop;
+        }
+        size = 1024;
+        const default_action = drop();
     }
 
     action set_action() {
         use_lock_engine = 1;
     }
 
-    action send_grant() {
-        headers.ethernet.src_addr = metadata.node_config.switch_mac_addr;
-        headers.ethernet.dst_addr = metadata.engine.client.mac_addr;
+    action prepare_grant() {
         headers.ipv4.src_addr = headers.ipv4.dst_addr;
         headers.ipv4.dst_addr = metadata.engine.client.ip_addr;
         headers.ipv4.ttl = 64;
@@ -64,22 +67,22 @@ control NetLockIngress(inout headers_t headers,
         headers.netlock.client_id = metadata.engine.client.client_id;
         headers.netlock.txn_id = metadata.engine.client.txn_id;
         headers.netlock.mode = metadata.engine.client.mode;
-        standard_metadata.egress_spec = metadata.engine.client.port;
     }
 
     table lock_id_to_action {
         key = { headers.netlock.lock_id: exact; }
         actions = {
             set_action;
-            forward_to_server;
+            route_packet;
         }
         size = 1024;
-        default_action = forward_to_server();
+        default_action = route_packet();
     }
 
     apply {
         use_lock_engine = 0;
         config_ready = 0;
+        route_ready = 1;
         metadata.engine.engine_action = NETLOCK_ENGINE_ACTION_NONE;
         metadata.engine.grant = 0;
 
@@ -96,21 +99,34 @@ control NetLockIngress(inout headers_t headers,
             if (config_ready == 0) {
                 mark_to_drop(standard_metadata);
             } else {
-                lock_id_to_action.apply();
+                // Only requests can enter the engine. In particular, a GRANT
+                // for a locally managed lock must still be routed normally.
+                if (headers.netlock.op == NETLOCK_OP_ACQUIRED ||
+                    headers.netlock.op == NETLOCK_OP_RELEASE) {
+                    lock_id_to_action.apply();
+                }
                 if (use_lock_engine == 1) {
                     lock_engine.apply(headers, metadata, standard_metadata);
                     if (metadata.engine.engine_action == NETLOCK_ENGINE_ACTION_GRANT &&
                         metadata.engine.grant == 1) {
-                        send_grant();
+                        prepare_grant();
                     } else {
-                        mark_to_drop(standard_metadata);
+                        // Queued acquires and releases without a waiter are
+                        // consumed locally; they must not fall through to routing.
+                        route_ready = 0;
                     }
+                }
+
+                if (route_ready == 0 ||
+                    (use_lock_engine == 0 && headers.ipv4.ttl <= 1)) {
+                    mark_to_drop(standard_metadata);
                 } else {
-                    if (headers.ipv4.ttl <= 1) {
-                        mark_to_drop(standard_metadata);
-                    } else {
-                        send_to_server();
+                    // Transit packets lose one hop. Locally generated grants
+                    // keep the initial TTL set by prepare_grant().
+                    if (use_lock_engine == 0) {
+                        headers.ipv4.ttl = headers.ipv4.ttl - 1;
                     }
+                    ipv4_forward.apply();
                 }
             }
         }

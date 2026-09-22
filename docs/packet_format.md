@@ -60,13 +60,23 @@ must match both values. Locally managed lock IDs currently range from `0` to
 
 ## Grant replies and checksums
 
-A grant uses the same packet layout with `op = 3`. Ingress fills the recipient's
-client ID, transaction ID, mode, MAC/IP address, UDP port, and destination QP
-from engine metadata. On release with a waiter, the release packet becomes a
-grant addressed to that waiter; the lock ID is retained.
+A grant uses the same packet layout with `op = 3`. For switch-generated grants,
+ingress fills the recipient's client ID, transaction ID, mode, IP address, UDP
+port, and destination QP from engine metadata. On release with a waiter, the
+release packet becomes a grant addressed to that waiter; the lock ID is retained.
+
+All requests and replies use the same `ipv4_forward` table, keyed by destination
+IP, to select a next-hop MAC and output port. Routing does not classify server
+and client ports or rewrite IP addresses and QPs. Only ACQUIRE/RELEASE packets
+can enter the lock engine; received GRANTs always use normal routing. Locally
+consumed requests without a generated grant do not fall through to routing.
+
+Transit packets with TTL 0 or 1 are dropped; otherwise TTL is decremented.
+Switch-generated grants keep their initial TTL of 64 and use a route for the
+recipient's IP, including when granting a queued waiter. Any unknown destination
+IP is dropped.
 
 Egress recalculates the ICRC over a pseudo-header and the IPv4-through-NetLock
 fields, with invariant-field masks. The checksum stage updates the IPv4 header
-checksum. Ingress sets the UDP checksum to zero when forwarding to the server
-or sending a grant. Incoming checksums are not currently verified.
-
+checksum. Ingress sets the UDP checksum to zero when forwarding. Incoming
+checksums are not currently verified.

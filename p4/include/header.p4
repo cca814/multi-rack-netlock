@@ -82,11 +82,6 @@ struct headers_t {
 // metadata
 struct node_config_t {
     MAC_ADDR_T switch_mac_addr;
-    MAC_ADDR_T server_mac_addr;
-    IPV4_ADDR_T server_ip_addr;
-    // The egree port to server
-    PORT_T to_server_port;
-    QP_T server_qp;
 }
 
 // Endpoint and request identity retained while a client waits for a lock.
