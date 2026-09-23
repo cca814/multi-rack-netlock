@@ -1,0 +1,137 @@
+aron@p4-switch:~/multi-rack-netlock$ make p4-client
+cd "/home/aron/multi-rack-netlock" && sudo ip netns exec netlock-client "/home/aron/multi-rack-netlock/.venv/bin/python" -c 'from simulate.client.main import Client; from simulate.common.config import Scenario, SERVER_QPN, Q_KEY; client = Client("02:00:00:00:00:01", "10.200.0.1", "nl-client", "10.200.0.2", "02:00:00:00:00:02", SERVER_QPN, Q_KEY, Scenario.RANDOM, 101); import sys; import simulate.client.main as client_module; client_module.NUM_OF_LOCK_TO_ACQUIRED = int(sys.argv[1]); client_module.HOLD_TIME = float(sys.argv[2]); grants = client.start(reply_timeout=float(sys.argv[3])); print("Completed", len(grants), "lock cycles")' "10" "0.5" "5.0"
+2026-09-23 03:25:19.313 [INFO] Sending ACQUIRE client_id=101 lock_id=50 txn_id=0
+.
+Sent 1 packets.
+2026-09-23 03:25:19.336 [INFO] Received GRANT client_id=101 lock_id=50 txn_id=0
+2026-09-23 03:25:19.337 [INFO] Holding lock client_id=101 lock_id=50 txn_id=0; release in 0.5 seconds
+2026-09-23 03:25:19.837 [INFO] Sending RELEASE client_id=101 lock_id=50 txn_id=0
+.
+Sent 1 packets.
+2026-09-23 03:25:19.867 [INFO] Sending ACQUIRE client_id=101 lock_id=77 txn_id=1
+.
+Sent 1 packets.
+2026-09-23 03:25:19.911 [INFO] Received GRANT client_id=101 lock_id=77 txn_id=1
+2026-09-23 03:25:19.912 [INFO] Holding lock client_id=101 lock_id=77 txn_id=1; release in 0.5 seconds
+2026-09-23 03:25:20.412 [INFO] Sending RELEASE client_id=101 lock_id=77 txn_id=1
+.
+Sent 1 packets.
+2026-09-23 03:25:20.434 [INFO] Sending ACQUIRE client_id=101 lock_id=28 txn_id=2
+.
+Sent 1 packets.
+2026-09-23 03:25:20.458 [INFO] Received GRANT client_id=101 lock_id=28 txn_id=2
+2026-09-23 03:25:20.459 [INFO] Holding lock client_id=101 lock_id=28 txn_id=2; release in 0.5 seconds
+2026-09-23 03:25:20.959 [INFO] Sending RELEASE client_id=101 lock_id=28 txn_id=2
+.
+Sent 1 packets.
+2026-09-23 03:25:20.989 [INFO] Sending ACQUIRE client_id=101 lock_id=76 txn_id=3
+.
+Sent 1 packets.
+2026-09-23 03:25:21.025 [INFO] Received GRANT client_id=101 lock_id=76 txn_id=3
+2026-09-23 03:25:21.026 [INFO] Holding lock client_id=101 lock_id=76 txn_id=3; release in 0.5 seconds
+2026-09-23 03:25:21.526 [INFO] Sending RELEASE client_id=101 lock_id=76 txn_id=3
+.
+Sent 1 packets.
+2026-09-23 03:25:21.542 [INFO] Sending ACQUIRE client_id=101 lock_id=29 txn_id=4
+.
+Sent 1 packets.
+2026-09-23 03:25:21.593 [INFO] Received GRANT client_id=101 lock_id=29 txn_id=4
+2026-09-23 03:25:21.594 [INFO] Holding lock client_id=101 lock_id=29 txn_id=4; release in 0.5 seconds
+2026-09-23 03:25:22.095 [INFO] Sending RELEASE client_id=101 lock_id=29 txn_id=4
+.
+Sent 1 packets.
+2026-09-23 03:25:22.124 [INFO] Sending ACQUIRE client_id=101 lock_id=26 txn_id=5
+.
+Sent 1 packets.
+2026-09-23 03:25:22.163 [INFO] Received GRANT client_id=101 lock_id=26 txn_id=5
+2026-09-23 03:25:22.163 [INFO] Holding lock client_id=101 lock_id=26 txn_id=5; release in 0.5 seconds
+2026-09-23 03:25:22.663 [INFO] Sending RELEASE client_id=101 lock_id=26 txn_id=5
+.
+Sent 1 packets.
+2026-09-23 03:25:22.693 [INFO] Sending ACQUIRE client_id=101 lock_id=83 txn_id=6
+.
+Sent 1 packets.
+2026-09-23 03:25:22.720 [INFO] Received GRANT client_id=101 lock_id=83 txn_id=6
+2026-09-23 03:25:22.721 [INFO] Holding lock client_id=101 lock_id=83 txn_id=6; release in 0.5 seconds
+2026-09-23 03:25:23.222 [INFO] Sending RELEASE client_id=101 lock_id=83 txn_id=6
+.
+Sent 1 packets.
+2026-09-23 03:25:23.235 [INFO] Sending ACQUIRE client_id=101 lock_id=85 txn_id=7
+.
+Sent 1 packets.
+2026-09-23 03:25:23.275 [INFO] Received GRANT client_id=101 lock_id=85 txn_id=7
+2026-09-23 03:25:23.276 [INFO] Holding lock client_id=101 lock_id=85 txn_id=7; release in 0.5 seconds
+2026-09-23 03:25:23.777 [INFO] Sending RELEASE client_id=101 lock_id=85 txn_id=7
+.
+Sent 1 packets.
+2026-09-23 03:25:23.794 [INFO] Sending ACQUIRE client_id=101 lock_id=89 txn_id=8
+.
+Sent 1 packets.
+2026-09-23 03:25:23.817 [INFO] Received GRANT client_id=101 lock_id=89 txn_id=8
+2026-09-23 03:25:23.817 [INFO] Holding lock client_id=101 lock_id=89 txn_id=8; release in 0.5 seconds
+2026-09-23 03:25:24.318 [INFO] Sending RELEASE client_id=101 lock_id=89 txn_id=8
+.
+Sent 1 packets.
+2026-09-23 03:25:24.331 [INFO] Sending ACQUIRE client_id=101 lock_id=25 txn_id=9
+.
+Sent 1 packets.
+2026-09-23 03:25:24.351 [INFO] Received GRANT client_id=101 lock_id=25 txn_id=9
+2026-09-23 03:25:24.351 [INFO] Holding lock client_id=101 lock_id=25 txn_id=9; release in 0.5 seconds
+2026-09-23 03:25:24.852 [INFO] Sending RELEASE client_id=101 lock_id=25 txn_id=9
+.
+Sent 1 packets.
+Completed 10 lock cycles
+
+
+aron@p4-switch:~/multi-rack-netlock$ make p4-server
+cd "/home/aron/multi-rack-netlock" && sudo ip netns exec netlock-server "/home/aron/multi-rack-netlock/.venv/bin/python" -c 'from simulate.server.main import Server; server = Server("02:00:00:00:00:02", "10.200.0.2", "nl-server"); server.start()'
+2026-09-23 03:25:19.326 [INFO] Received ACQUIRE client_id=101 lock_id=50 txn_id=0
+2026-09-23 03:25:19.326 [INFO] Lock free; granting client_id=101 lock_id=50 txn_id=0
+2026-09-23 03:25:19.343 [INFO] Sent GRANT client_id=101 lock_id=50 txn_id=0
+2026-09-23 03:25:19.867 [INFO] Received owner RELEASE client_id=101 lock_id=50 txn_id=0
+2026-09-23 03:25:19.867 [INFO] Lock free lock_id=50
+2026-09-23 03:25:19.890 [INFO] Received ACQUIRE client_id=101 lock_id=77 txn_id=1
+2026-09-23 03:25:19.890 [INFO] Lock free; granting client_id=101 lock_id=77 txn_id=1
+2026-09-23 03:25:19.912 [INFO] Sent GRANT client_id=101 lock_id=77 txn_id=1
+2026-09-23 03:25:20.425 [INFO] Received owner RELEASE client_id=101 lock_id=77 txn_id=1
+2026-09-23 03:25:20.425 [INFO] Lock free lock_id=77
+2026-09-23 03:25:20.447 [INFO] Received ACQUIRE client_id=101 lock_id=28 txn_id=2
+2026-09-23 03:25:20.447 [INFO] Lock free; granting client_id=101 lock_id=28 txn_id=2
+2026-09-23 03:25:20.464 [INFO] Sent GRANT client_id=101 lock_id=28 txn_id=2
+2026-09-23 03:25:20.990 [INFO] Received owner RELEASE client_id=101 lock_id=28 txn_id=2
+2026-09-23 03:25:20.990 [INFO] Lock free lock_id=28
+2026-09-23 03:25:21.008 [INFO] Received ACQUIRE client_id=101 lock_id=76 txn_id=3
+2026-09-23 03:25:21.008 [INFO] Lock free; granting client_id=101 lock_id=76 txn_id=3
+2026-09-23 03:25:21.028 [INFO] Sent GRANT client_id=101 lock_id=76 txn_id=3
+2026-09-23 03:25:21.538 [INFO] Received owner RELEASE client_id=101 lock_id=76 txn_id=3
+2026-09-23 03:25:21.539 [INFO] Lock free lock_id=76
+2026-09-23 03:25:21.565 [INFO] Received ACQUIRE client_id=101 lock_id=29 txn_id=4
+2026-09-23 03:25:21.565 [INFO] Lock free; granting client_id=101 lock_id=29 txn_id=4
+2026-09-23 03:25:21.591 [INFO] Sent GRANT client_id=101 lock_id=29 txn_id=4
+2026-09-23 03:25:22.120 [INFO] Received owner RELEASE client_id=101 lock_id=29 txn_id=4
+2026-09-23 03:25:22.121 [INFO] Lock free lock_id=29
+2026-09-23 03:25:22.148 [INFO] Received ACQUIRE client_id=101 lock_id=26 txn_id=5
+2026-09-23 03:25:22.149 [INFO] Lock free; granting client_id=101 lock_id=26 txn_id=5
+2026-09-23 03:25:22.170 [INFO] Sent GRANT client_id=101 lock_id=26 txn_id=5
+2026-09-23 03:25:22.690 [INFO] Received owner RELEASE client_id=101 lock_id=26 txn_id=5
+2026-09-23 03:25:22.690 [INFO] Lock free lock_id=26
+2026-09-23 03:25:22.706 [INFO] Received ACQUIRE client_id=101 lock_id=83 txn_id=6
+2026-09-23 03:25:22.706 [INFO] Lock free; granting client_id=101 lock_id=83 txn_id=6
+2026-09-23 03:25:22.724 [INFO] Sent GRANT client_id=101 lock_id=83 txn_id=6
+2026-09-23 03:25:23.231 [INFO] Received owner RELEASE client_id=101 lock_id=83 txn_id=6
+2026-09-23 03:25:23.231 [INFO] Lock free lock_id=83
+2026-09-23 03:25:23.255 [INFO] Received ACQUIRE client_id=101 lock_id=85 txn_id=7
+2026-09-23 03:25:23.256 [INFO] Lock free; granting client_id=101 lock_id=85 txn_id=7
+2026-09-23 03:25:23.276 [INFO] Sent GRANT client_id=101 lock_id=85 txn_id=7
+2026-09-23 03:25:23.790 [INFO] Received owner RELEASE client_id=101 lock_id=85 txn_id=7
+2026-09-23 03:25:23.790 [INFO] Lock free lock_id=85
+2026-09-23 03:25:23.805 [INFO] Received ACQUIRE client_id=101 lock_id=89 txn_id=8
+2026-09-23 03:25:23.805 [INFO] Lock free; granting client_id=101 lock_id=89 txn_id=8
+2026-09-23 03:25:23.822 [INFO] Sent GRANT client_id=101 lock_id=89 txn_id=8
+2026-09-23 03:25:24.326 [INFO] Received owner RELEASE client_id=101 lock_id=89 txn_id=8
+2026-09-23 03:25:24.326 [INFO] Lock free lock_id=89
+2026-09-23 03:25:24.339 [INFO] Received ACQUIRE client_id=101 lock_id=25 txn_id=9
+2026-09-23 03:25:24.339 [INFO] Lock free; granting client_id=101 lock_id=25 txn_id=9
+2026-09-23 03:25:24.358 [INFO] Sent GRANT client_id=101 lock_id=25 txn_id=9
+2026-09-23 03:25:24.871 [INFO] Received owner RELEASE client_id=101 lock_id=25 txn_id=9
+2026-09-23 03:25:24.872 [INFO] Lock free lock_id=25

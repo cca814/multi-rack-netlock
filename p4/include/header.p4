@@ -65,6 +65,11 @@ header netlock_h {
     bit<16> txn_id;
 }
 
+// Two bytes align the 10-byte NetLock payload to a four-byte boundary.
+header roce_padding_h {
+    bit<16> value;
+}
+
 header icrc_h {
     bit<32> value;
 }
@@ -76,6 +81,7 @@ struct headers_t {
     bth_h bth;
     deth_h deth;
     netlock_h netlock;
+    roce_padding_h roce_padding;
     icrc_h icrc;
 }
 

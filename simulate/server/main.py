@@ -82,10 +82,12 @@ class Server(RdmaNode):
         ):
             return
         payload = bytes(packet[UDP].payload)
-        # Fixed simulation format: BTH(12), DETH(8), NetLock(10), ICRC(4).
-        if len(payload) != 34:
+        # Fixed simulation format: BTH(12), DETH(8), NetLock(10), pad(2), ICRC(4).
+        if len(payload) != 36:
             return
         bth = BTH(payload)
+        if bth.padcount != 2 or bth.version != 0:
+            return
         deth = DETH(payload[12:20])
         netlock = NetLockPkt(payload[20:30])
         if (
@@ -175,5 +177,4 @@ class Server(RdmaNode):
             )
 
     def start(self):
-        """Serve until Ctrl+C. Both supported modes use single-owner semantics."""
         sniff(iface=self.iface, store=False, prn=self._receive_request)

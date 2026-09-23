@@ -48,6 +48,11 @@ parser NetLockParser(packet_in packet,
 
     state parse_netlock {
         packet.extract(headers.netlock);
+        transition parse_roce_padding;
+    }
+
+    state parse_roce_padding {
+        packet.extract(headers.roce_padding);
         transition parse_icrc;
     }
 

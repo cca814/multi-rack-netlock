@@ -181,3 +181,66 @@ logger.warning("Ignoring release from a non-owner")
 
 The default level is `logging.INFO`. Pass `level=logging.DEBUG` to include
 debug messages. Repeated calls for the same file reuse the logger.
+
+## ICRC correctness and comparison
+
+The egress CRC32 hash is a real RoCEv2 ICRC calculation. It covers the masked
+pseudo-LRH, IPv4/UDP/BTH headers, DETH, the complete 10-byte NetLock payload,
+and two padding bytes, then writes the CRC least-significant byte first.
+The wire format is now 36 bytes of UDP payload (previously 34); restart both
+endpoints and reload the P4 pipeline together. Only unfragmented IPv4 without
+options, UD_SEND_ONLY, and this fixed payload size are supported. Unsupported
+layouts are dropped; this is not a general variable-size RDMA implementation.
+The switch recomputes outgoing ICRC; it does not validate incoming ICRC.
+
+Build separate variants so the loaded configuration is unambiguous:
+
+```bash
+make p4-build P4_ICRC=1 P4_BUILD_DIR=build/icrc-on
+make p4-build P4_ICRC=0 P4_BUILD_DIR=build/icrc-off
+```
+
+With the switch running, load one variant and start the server as usual:
+
+```bash
+make p4-rules P4_BUILD_DIR=build/icrc-on
+make p4-server
+# In another terminal:
+make p4-client CLIENT_CYCLES=1000 CLIENT_HOLD_TIME=0
+```
+
+Stop the server, load `build/icrc-off` with the same `make p4-rules` command,
+restart the server to clear lock state, and repeat the client workload. Alternate
+variants over several runs. `P4_ICRC` is a compile-time option; changing it only
+on `p4-rules` does not change an existing build.
+
+Use the default forwarding-only controller configuration for this comparison.
+The off variant preserves the incoming ICRC and still sends the same packet
+size. Forwarding modifies only Ethernet and ICRC-invariant fields, so the
+original ICRC remains valid. With switch-managed locks, grants change protected
+fields and the off variant produces invalid ICRC; do not use it as a valid RDMA
+baseline. Endpoint Scapy CRC generation remains enabled in both runs.
+
+Validate a capture independently (requires tcpdump on the test machine):
+
+```bash
+sudo tcpdump -i sw-client -s 0 -w /tmp/icrc-on.pcap 'udp port 4791'
+# Run the workload in another terminal, then Ctrl+C tcpdump.
+.venv/bin/python -m simulate.common.icrc /tmp/icrc-on.pcap
+.venv/bin/python -m unittest discover -s tests -v
+```
+
+The checker exits nonzero for a bad CRC, unsupported RoCE layout, or no RoCE
+packets. It includes padding in the checksum and ignores Ethernet frame padding.
+For timing, capture both switch-facing interfaces on the same host and match
+packets by direction, operation, client/lock/transaction ID; subtract ingress
+capture time from egress capture time. This includes host capture/scheduling
+noise, but excludes endpoint packet construction and server processing. Run
+capture validation separately from performance measurements if capture overhead
+matters. Millisecond application logs and BMv2 timings cannot establish ASIC
+ICRC cost. A throughput test under load is a separate measurement from this
+sequential request/reply workload.
+
+Reference masking and CRC behavior:
+[Linux RXE ICRC](https://github.com/torvalds/linux/blob/master/drivers/infiniband/sw/rxe/rxe_icrc.c)
+and [BMv2 CRC32](https://github.com/p4lang/behavioral-model/blob/main/src/bm_sim/calculations.cpp).

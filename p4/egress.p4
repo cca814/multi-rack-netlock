@@ -1,14 +1,24 @@
 #ifndef _NETLOCK_EGRESS_P4
 #define _NETLOCK_EGRESS_P4
 
+// Disable only for controlled recomputation benchmarks.
+#ifndef NETLOCK_ENABLE_ICRC
+#define NETLOCK_ENABLE_ICRC 1
+#endif
+#if NETLOCK_ENABLE_ICRC != 0 && NETLOCK_ENABLE_ICRC != 1
+#error NETLOCK_ENABLE_ICRC must be 0 or 1
+#endif
+
 control NetLockEgress(inout headers_t headers,
                       inout metadata_t metadata,
                       inout standard_metadata_t standard_metadata) {
     bit<32> icrc;
 
-    // Fixed parsed layout: IPv4 / UDP / BTH / DETH / NetLock / ICRC.
-    // No IPv4 options, additional payload, or RoCE padding are supported yet.
-    // When extending the parser, include all payload and padding bytes here.
+    // IPv4 / UDP / UD BTH / DETH / NetLock(10) / pad(2) / ICRC.
+    // Ingress rejects other layouts. All payload and padding are covered.
+    // BMv2 crc32: polynomial 0x04c11db7, reflected input/output,
+    // initial remainder and final XOR 0xffffffff. No extra complement.
+#if NETLOCK_ENABLE_ICRC
     action write_icrc() {
         hash(icrc, HashAlgorithm.crc32, (bit<32>) 0,
             {
@@ -48,7 +58,8 @@ control NetLockEgress(inout headers_t headers,
                 headers.netlock.mode,
                 headers.netlock.client_id,
                 headers.netlock.lock_id,
-                headers.netlock.txn_id
+                headers.netlock.txn_id,
+                headers.roce_padding.value
             },
             // hash uses base + CRC % max; 2^32 preserves every CRC32 value.
             64w0x100000000);
@@ -59,13 +70,18 @@ control NetLockEgress(inout headers_t headers,
                             icrc[23:16] ++ icrc[31:24];
     }
 
+#endif
+
     apply {
+#if NETLOCK_ENABLE_ICRC
         // Keep this call after any future egress packet modifications.
         if (headers.ipv4.isValid() && headers.udp.isValid() &&
             headers.bth.isValid() && headers.deth.isValid() &&
-            headers.netlock.isValid() && headers.icrc.isValid()) {
+            headers.netlock.isValid() && headers.roce_padding.isValid() &&
+            headers.icrc.isValid()) {
             write_icrc();
         }
+#endif
     }
 }
 

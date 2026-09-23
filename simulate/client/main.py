@@ -51,9 +51,11 @@ class Client(RdmaNode):
         ):
             return
         payload = bytes(pkt[UDP].payload)
-        if len(payload) != 34:
+        if len(payload) != 36:
             return
         bth = BTH(payload)
+        if bth.padcount != 2 or bth.version != 0:
+            return
         deth = DETH(payload[12:20])
         grant = NetLockPkt(payload[20:30])
         if (

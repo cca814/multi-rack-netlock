@@ -40,7 +40,7 @@ class RdmaNode:
             / UDP(sport=config.RDMA_UDP_PORT, dport=config.RDMA_UDP_PORT, chksum=0)
             / BTH(
                 opcode="UD_SEND_ONLY",
-                padcount=0,
+                padcount=2,
                 dqpn=dst_qpn,
                 psn=psn,
             )
@@ -49,6 +49,7 @@ class RdmaNode:
                 src_qpn=src_qpn,
             )
             / netlock_pkt
+            / Raw(b"\x00\x00")
         )
 
     def send_pkt(

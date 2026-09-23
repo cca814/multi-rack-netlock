@@ -90,7 +90,11 @@ control NetLockIngress(inout headers_t headers,
             !headers.ethernet.isValid() || !headers.ipv4.isValid() ||
             !headers.udp.isValid() || !headers.bth.isValid() ||
             !headers.deth.isValid() || !headers.netlock.isValid() ||
-            !headers.icrc.isValid() || headers.ipv4.version != 4 ||
+            !headers.roce_padding.isValid() || !headers.icrc.isValid() ||
+            headers.ipv4.total_len != 64 || headers.udp.len != 44 ||
+            headers.bth.opcode != 0x64 || headers.bth.pad_count != 2 ||
+            headers.bth.tranport_header_version != 0 ||
+            headers.ipv4.version != 4 ||
             headers.ipv4.ihl != 5 || headers.ipv4.frag_offset != 0 ||
             headers.ipv4.flags[0:0] != 0) {
             mark_to_drop(standard_metadata);

@@ -10,6 +10,7 @@ control NetLockDeparser(packet_out packet,
         packet.emit(headers.bth);
         packet.emit(headers.deth);
         packet.emit(headers.netlock);
+        packet.emit(headers.roce_padding);
         packet.emit(headers.icrc);
     }
 }

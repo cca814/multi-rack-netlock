@@ -11,6 +11,7 @@ CONTROLLER_PYTHON := $(abspath $(CONTROLLER_VENV))/bin/python
 P4C ?= p4c-bm2-ss
 P4_SWITCH ?= simple_switch_grpc
 P4_BUILD_DIR ?= build
+P4_ICRC ?= 1
 P4INFO := $(abspath $(P4_BUILD_DIR))/netlock.p4info.txt
 BMV2_JSON := $(abspath $(P4_BUILD_DIR))/netlock.json
 P4_CONFIG ?= controller/config.example.json
@@ -38,7 +39,7 @@ help:
 	@echo 'make sim-down          Remove the simulation network'
 	@echo 'make p4-setup          Install Python dependencies, compile P4, create switch topology'
 	@echo 'make p4-up             Create only the client-switch-server network'
-	@echo 'make p4-build          Compile P4 into BMv2 JSON and P4Info'
+	@echo 'make p4-build          Compile P4 into BMv2 JSON and P4Info (P4_ICRC=1 or 0)'
 	@echo 'make p4-switch         Run simple_switch_grpc in the foreground (terminal 1)'
 	@echo 'make p4-rules          Load the pipeline and install routes (terminal 2)'
 	@echo 'make p4-rules-dry-run  Preview rules without a switch or controller dependencies'
@@ -99,7 +100,7 @@ p4-down: sim-down
 
 p4-build:
 	mkdir -p "$(abspath $(P4_BUILD_DIR))"
-	cd "$(ROOT)" && "$(P4C)" --std p4-16 --p4runtime-files "$(P4INFO)" -o "$(BMV2_JSON)" p4/main.p4
+	cd "$(ROOT)" && "$(P4C)" --std p4-16 -DNETLOCK_ENABLE_ICRC=$(P4_ICRC) --p4runtime-files "$(P4INFO)" -o "$(BMV2_JSON)" p4/main.p4
 
 p4-switch: p4-check-network
 	$(SUDO) "$(P4_SWITCH)" --device-id "$(P4_DEVICE_ID)" --no-p4 \
